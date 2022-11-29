@@ -70,7 +70,8 @@ class WindPowOrkney(mlflow.pyfunc.PythonModel):
 
 if __name__ == "__main__":
     data_path= "dataset.json"
-    mlflow.log_param("dataset_time", datetime.now())
+    timestamp=datetime.now()
+    mlflow.log_param("dataset_time", timestamp)
 
     df = pd.read_json(data_path, orient="split")
         
@@ -106,5 +107,5 @@ if __name__ == "__main__":
     mlflow.log_params(rf_params)
     mlflow.set_tags(tags_RF)
     #mlflow.sklearn.log_model(mod, "model", conda_env='conda.yaml')
-    mlflow.pyfunc.save_model("model", python_model=mod, conda_env='conda.yaml')
+    mlflow.pyfunc.save_model(f"model_{timestamp}", python_model=mod, conda_env='conda.yaml')
     mlflow.end_run()
