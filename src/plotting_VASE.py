@@ -9,10 +9,10 @@ def plot_search_results(grid):
     """
     ## Results from grid search
     results = grid.cv_results_
-    means_test = results['mean_test_score']
-    stds_test = results['std_test_score']
-    means_train = results['mean_train_score']
-    stds_train = results['std_train_score']
+    means_test = results['mean_test_RMSE']
+    stds_test = results['std_test_RMSE']
+    means_train = results['mean_train_RMSE']
+    stds_train = results['std_train_RMSE']
 
     ## Getting indexes of values per hyper-parameter
     masks=[]
@@ -39,10 +39,10 @@ def plot_search_results(grid):
         e_2 = np.array(stds_train[best_index])
         ax[i].errorbar(x, y_1, e_1, linestyle='--', marker='o', label='test')
         ax[i].errorbar(x, y_2, e_2, linestyle='-', marker='^',label='train' )
-        ax[i].set_xlabel(p.upper())
+        ax[i].set_xlabel(p.upper(), fontsize=8)
 
     plt.legend()
-    plt.show()
+    return fig
 
 # plotting prediction line
 def plot_powe_time(x_train,x_test,y_train,y_test, y_pred):

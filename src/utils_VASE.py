@@ -14,7 +14,7 @@ from os.path import exists
 
 def is_local(url):
     url_parsed = urlparse(url)
-    if url_parsed.scheme not in ('http', 'https'): # Possibly a local file
+    if url_parsed.scheme not in ('http', 'https', 'azureml'): # Possibly a local file
         return True
     return False
 
@@ -56,7 +56,6 @@ def log_run(gridsearch: GridSearchCV, experiment_name: str, model_name: str, run
         for score_name in [score for score in cv_results if "mean_test" in score]:
             mlflow.log_metric(score_name, cv_results[score_name][run_index])
             mlflow.log_metric(score_name.replace("mean","std"), cv_results[score_name.replace("mean","std")][run_index])
-
         print("Logging model")        
         mlflow.sklearn.log_model(gridsearch.best_estimator_, model_name, conda_env=conda_env)
 
@@ -77,6 +76,8 @@ def log_run(gridsearch: GridSearchCV, experiment_name: str, model_name: str, run
         experiment_id = run.info.experiment_id
         print(mlflow.get_artifact_uri())
         print("runID: %s" % run_id)
+        print( "experimentID: %s" % experiment_id )
+
         mlflow.end_run()
 
 def log_results(gridsearch: GridSearchCV, experiment_name, model_name, deploy_url,conda_env, tags={}, log_only_best=False):

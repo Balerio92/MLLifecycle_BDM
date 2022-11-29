@@ -1,4 +1,4 @@
-name: CAISO_model
+name: WindPow_model
 
 conda_env: conda.yaml
 
