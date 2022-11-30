@@ -4,3 +4,5 @@ SVR_model/*
 RF_model/*
 images/*
 */__pycache__/*
+model_*/
+*/mlruns/*

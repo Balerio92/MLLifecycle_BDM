@@ -13,4 +13,4 @@ To build the mlflow project run the command:
 
 ### Deploy the model 
 To deploy the built model run the command:
-`mlflow models serve -m model`
+`mlflow models serve -m model_timestamp`

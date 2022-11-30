@@ -24,8 +24,10 @@ from plotting_VASE import (plot_search_results, plot_powe_time)
 #%%
 
 from sklearn.ensemble import RandomForestRegressor
+import sys
+sys.path.append("..")
 #%%
-data_path= r"C:\Users\valer\Downloads\dataset.json"
+data_path= r"../dataset.json"
     
 df = pd.read_json(data_path, orient="split")
     
@@ -88,26 +90,25 @@ grid_RF.fit(x_train,y_train)
 rf_pred=grid_RF.predict(x_test)
 
 # %%
-deploy_url = """azureml://northeurope.api.azureml.ms/mlflow/v1.0/subscriptions/a5c59ac8-7ad8-42c0-8220-8bda77ee09af/resourceGroups/Assignment3/providers/Microsoft.MachineLearningServices/workspaces/Assignment3_workspace"""
-#deploy_url = 'mlruns'
+#deploy_url = """azureml://northeurope.api.azureml.ms/mlflow/v1.0/subscriptions/a5c59ac8-7ad8-42c0-8220-8bda77ee09af/resourceGroups/Assignment3/providers/Microsoft.MachineLearningServices/workspaces/Assignment3_workspace"""
+
+deploy_url = 'mlruns'
+condapath = '../conda.yaml'
 tags_RF = {"engineering": "Azure Platform",
         "release.candidate": "RF1",
         "release.version": "0.0.1"}
 
-log_results(grid_RF,"VASE - RandomForestGridSearch Final","RF",deploy_url,conda_env='conda.yaml',  tags=tags_RF)
+log_results(grid_RF,"VASE - RandomForestGridSearch Final","RF",deploy_url,conda_env= condapath,  tags=tags_RF)
 
 tags_SVR = {"engineering": "Azure Platform",
         "release.candidate": "SVR1",
         "release.version": "0.0.1"}
-log_results(grid_SVR,"VASE - SVR Grid Search Final","SVR",deploy_url, conda_env='conda.yaml', tags=tags_SVR )
+log_results(grid_SVR,"VASE - SVR Grid Search Final","SVR",deploy_url, conda_env= condapath, tags=tags_SVR )
 
 # %%
 plot_search_results(grid_RF)
 plot_search_results(grid_SVR)
        
-
-# %%
-
 # %%
 plot_powe_time(x_train,x_test,y_train,y_test, svr_pred)
 
@@ -117,96 +118,16 @@ plot_powe_time(x_train,x_test,y_train,y_test, rf_pred)
 
 # Load mlflow res
 RF_df=mlflow.search_runs(experiment_names=[ "VASE - RandomForestGridSearch Final" ])
-RF_df.sort_values(['metrics.std_test_score'], inplace= True)
 
-SVR_df=mlflow.search_runs(experiment_names=[ "VASE - SVR Grid Search Final" ]).sort_values('metrics.std_test_score')
+SVR_df=mlflow.search_runs(experiment_names=[ "VASE - SVR Grid Search Final" ])
 perf_df = RF_df.append(SVR_df)
 
 # %%
-perf_df.sort_values(['metrics.std_test_score'], inplace= True)
+perf_df.sort_values(['metrics.std_test_RMSE'], inplace= True)
 
 red = perf_df.iloc[:20]
 # %%
 tags_SVR = {"engineering": "Azure Platform",
         "release.candidate": "SVR_Best",
         "release.version": "0.1.0"}
-log_results(grid_SVR,"VASE - SVR Best Grid","SVR", deploy_url,conda_env='conda.yaml', tags=tags_SVR, log_only_best=True )
-
-# %%
-class WindPowOrkney(mlflow.pyfunc.PythonModel):
-    # Estimator of wind power production in Orkney:
-    # It predicts the power generation in Orkeny given a wind speed and direction parameters
-
-    def __init__(self):
-        from sklearn.pipeline import Pipeline
-        from transformations_VASE import wind_transformer
-        from sklearn.svm import SVR
-        
-        col_trans=ColumnTransformer([
-            ('wind_tr', wind_transformer(component=True), ['Speed','Direction']),
-            ('scaler', StandardScaler(), ['Speed'])
-            ])
-        
-        preprocessor = Pipeline([('col_tr',col_trans)])
-
-        SVR_p= make_pipeline(
-            StandardScaler(),
-            (SVR(gamma='auto'))
-            )
-        self.pipeline = make_pipeline(preprocessor, SVR_p)
-
-    def fit(self,x,y):
-        self.pipeline.fit(x,y)       
-        return self
-
-    def predict(self, samples):
-        return self.pipeline.predict(samples)
-# %%
-mod = WindPowOrkney().fit(x_train,y_train)
-#r = mod.predict(x_test)
-# %%
-#from utils_VASE import conda_reqs_to_dict
-
-mlflow.pyfunc.save_model("SVR1_model", python_model=mod, conda_env="conda.yaml")
-
-# %%
-
-# %%
-class WindPowOrkney(mlflow.pyfunc.PythonModel):
-    # Estimator of wind power production in Orkney:
-    # It predicts the power generation in Orkeny given a wind speed and direction parameters
-
-    def __init__(self):
-        from sklearn.pipeline import Pipeline
-        from transformations_VASE import wind_transformer
-        from sklearn.svm import SVR
-        
-        col_trans=ColumnTransformer([
-            ('wind_tr', wind_transformer(component=True), ['Speed','Direction']),
-            ('scaler', StandardScaler(), ['Speed'])
-            ])
-        
-        preprocessor = Pipeline([('col_tr',col_trans)])
-
-        SVR_p= make_pipeline(
-            StandardScaler(),
-            (SVR(gamma='auto'))
-            )
-        self.pipeline = make_pipeline(preprocessor, SVR_p)
-
-    def fit(self,x,y):
-        self.pipeline.fit(x,y)       
-        return self
-
-    def predict(self, context, samples):
-        return self.pipeline.fit_predict(samples)
-
-s = pd.read_json("""{
-    "columns":["Speed","Direction"],
-    "data":[[7.15264,"NNW"],[3.12928,"W"],[5.81152,"NNW"],[7.15264,"NNW"]]
-    }""",  orient="split")
-# %%
-mod = WindPowOrkney().fit(x_train,y_train)
-
-mod.predict(samples=s)
-# %%
+log_results(grid_SVR,"VASE - SVR Best Grid","SVR", deploy_url,conda_env= condapath, tags=tags_SVR, log_only_best=True )
