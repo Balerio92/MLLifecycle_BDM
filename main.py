@@ -70,7 +70,7 @@ class WindPowOrkney(mlflow.pyfunc.PythonModel):
 
 if __name__ == "__main__":
     data_path= "dataset.json"
-    timestamp=datetime.now()
+    timestamp = datetime.now().isoformat().split(".")[0].replace(":", ".")
     mlflow.log_param("dataset_time", timestamp)
 
     df = pd.read_json(data_path, orient="split")
